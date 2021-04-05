@@ -14,6 +14,7 @@ from collections import defaultdict
 import csv
 import sys
 import re
+import pandas as pd
 
 
 
@@ -23,7 +24,13 @@ def read_nasari(source):
     with open(source, encoding="utf8") as src:
         for line in csv.reader(src, delimiter='\t', quoting=csv.QUOTE_NONE):
             nasari_vectors[line[0]] = line[1]
+    #df = pd.DataFrame(data=nasari_vectors)
+    #return df
     return nasari_vectors
+
+def flatten(liste) :
+    flat_list = [item for sublist in liste for item in sublist]
+    return flat_list
 
 if __name__ == '__main__':
 
@@ -36,15 +43,37 @@ if __name__ == '__main__':
     classes_fr = list(onto_fr.classes())
     classes_en = list(onto_en.classes())
 
-    labels_fr = [classe.label for classe in classes_fr]
-    labels_en = [classe.label for classe in classes_en]
+    labels_fr = flatten([classe.label for classe in classes_fr])
+    labels_en = flatten([classe.label for classe in classes_en])
     print(labels_fr)
     print(labels_en)
 
-    president = labels_fr[0]
 
-    #with open('./NASARI_lexical_french.txt', encoding="utf8") as file :
-    print(read_nasari('./NASARI_unified_french.txt'))
+
+    french_nasari = read_nasari('./NASARI_unified_french.txt')
+    english_nasari = read_nasari('./NASARI_unified_english.txt')
+
+    #terme = labels_fr[0]
+    terme = "Président"
+    # Chercher l'ID de president
+    bn = None
+    for id, title in french_nasari.items() :
+        if title == terme :
+            bn = id
+
+    print(bn)
+
+    translation = None
+    for id, title in english_nasari.items() :
+        if id == bn :
+            translation = title
+
+    print(translation)
+
+    for label in labels_en :
+        if label.lower() == translation.lower() :
+            print("OK")
+
 
 
 
