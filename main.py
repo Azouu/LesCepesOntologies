@@ -11,6 +11,8 @@ import sys
 import re
 import pandas as pd
 
+import nltk
+import spacy
 
 
 
@@ -37,8 +39,8 @@ def getVectInId(listeVect,vect):
         if listeVect[i] == vect:
             return i+1
 
-
-
+def getSubject(string) :
+    pass
 
 
 def match2(id1, id2, dico1, dico2):
@@ -59,7 +61,7 @@ def match2(id1, id2, dico1, dico2):
         rangListe1 =  listID1.index(intersection[i]) + 1
         rangListe2 =  listID2.index(intersection[i]) + 1
         top += ((rangListe1 + rangListe2) ** -1)
-        bot += (2 * i + 1) ** -1
+        bot += (2 * (i+1)) ** -1
 
     return (top / bot) if bot != 0 else top
 
@@ -85,11 +87,39 @@ if __name__ == '__main__':
     french_nasari_IT, french_nasari_IV = read_nasari('./NASARI_unified_french.txt')
     english_nasari_IT, english_nasari_IV = read_nasari('./NASARI_unified_english.txt')
 
-    print(match2("bn:00000002n","bn:00000002n",french_nasari_IV,french_nasari_IV))
-    print(french_nasari_IT["bn:00000002n"])
-    print(english_nasari_IT["bn:00000002n"])
-    # english_nasari = read_nasari('./NASARI_unified_english.txt')
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+    for token in doc:
+        print(token.text)
 
+    nlp = spacy.load('fr_core_news_sm')
+    doc = nlp('Demain je travaille à la maison')
+    sub_toks = {tok: tok.dep_ for tok in doc}
+    print(sub_toks)
+
+
+    nlp = spacy.load('en_core_web_sm')
+    for sent in labels_en :
+        doc = nlp(str(sent))
+        sub_toks = {tok:tok.dep_ for tok in doc}
+        print(sub_toks)
+
+    nlp = spacy.load('fr_core_news_sm')
+    for sent in labels_fr:
+        doc = nlp(str(sent))
+        sub_toks = {tok: tok.dep_ for tok in doc}
+        print(sub_toks)
+
+    # alignement sur les labels monotermes
+    # sélection et pre-processing des termes
+    labels_fr_mono = [label.lower() for label in labels_fr if len(label.split()) == 1 ]
+    print(labels_fr_mono)
+
+    #marche pas encore
+    for id, title in french_nasari_IT.items():
+        doc = nlp(str(title))
+        sub_toks = {tok: tok.dep_ for tok in doc if tok.dep_ == labels_fr_mono[0]}
+        print(sub_toks)
 
     # #terme = labels_fr[0]
     # terme = "Président"
@@ -111,6 +141,9 @@ if __name__ == '__main__':
     # for label in labels_en :
     #     if label.lower() == translation.lower() :
     #         print("OK")
+
+
+
 
 
     
