@@ -163,45 +163,105 @@ if __name__ == '__main__':
     
     
 
-    # labels_fr = flatten([classe.label for classe in classes_fr])
-    # labels_en = flatten([classe.label for classe in classes_en])
-    # print(labels_fr[4])
-    # print(labels_en)
+    labels_fr = flatten([classe.label for classe in classes_fr])
+    labels_en = flatten([classe.label for classe in classes_en])
+    print(labels_fr[4])
+    print(labels_en)
 
 
 
-    # french_nasari_IT, french_nasari_IV = read_nasari('./NASARI_unified_french.txt')
-    # english_nasari_IT, english_nasari_IV = read_nasari('./NASARI_unified_english.txt')
+    french_nasari_IT, french_nasari_IV = read_nasari('./NASARI_unified_french.txt')
+    english_nasari_IT, english_nasari_IV = read_nasari('./NASARI_unified_english.txt')
     
-    # print(findOntInNASARI(labels_fr[3],french_nasari_IT))
+     french_nasari_IT, french_nasari_IV = read_nasari('./NASARI_unified_french.txt')
+    english_nasari_IT, english_nasari_IV = read_nasari('./NASARI_unified_english.txt')
 
-    # print(match2("bn:00000002n","bn:00000002n",french_nasari_IV,french_nasari_IV))
-    # print(french_nasari_IT["bn:00000002n"])
-    # print(english_nasari_IT["bn:00000002n"])
-    # english_nasari = read_nasari('./NASARI_unified_english.txt')
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+    for token in doc:
+        print(token.text)
+
+    nlp = spacy.load('fr_core_news_sm')
+    doc = nlp('Demain je travaille à la maison')
+    sub_toks = {tok: tok.dep_ for tok in doc}
+    print(sub_toks)
 
 
-    # #terme = labels_fr[0]
-    # terme = "Président"
-    # # Chercher l'ID de president
-    # bn = None
-    # for id, title in french_nasari.items() :
-    #     if title == terme :
-    #         bn = id
+    nlp = spacy.load('en_core_web_sm')
+    for sent in labels_en :
+        doc = nlp(str(sent))
+        sub_toks = {tok:tok.dep_ for tok in doc}
+        print(sub_toks)
 
-    # print(bn)
+    nlp = spacy.load('fr_core_news_sm')
+    for sent in labels_fr:
+        doc = nlp(str(sent))
+        sub_toks = {tok: tok.dep_ for tok in doc}
+        print(sub_toks)
 
-    # translation = None
-    # for id, title in english_nasari.items() :
-    #     if id == bn :
-    #         translation = title
+    # alignement sur les labels monotermes
+    # sélection et pre-processing des termes
+    labels_fr_mono = [label for label in labels_fr if len(label.split()) == 1 ]
+    labels_fr_multi = [label for label in labels_fr if len(label.split()) > 1 ]
+    print(labels_fr_mono)
 
-    # print(translation)
+    dico_labels_mono = {}
+    for label in labels_fr_mono :
+        dico_labels_mono[label] = {id:title for id,title in french_nasari_IT.items() if remove_accents(label.lower()) in remove_accents(title.lower()) }
 
-    # for label in labels_en :
-    #     if label.lower() == translation.lower() :
-    #         print("OK")
+    print(dico_labels_mono)
 
+
+    dico = {}
+    for label in labels_en :
+        dico[label] = [id for id,title in english_nasari_IT.items() if remove_accents(label.lower()) in remove_accents(title.lower()) ]
+
+    # select label with the most common bn
+    for tomatch in labels_fr_mono :
+        matched = [label for label,bns in dico.items() if len(set(bns) & set(dico_labels_mono[tomatch].keys())) > 0]
+        print(tomatch)
+        print(matched)
+        print()
+
+    # Part-of speech fr to eng
+    label_and_root_fr  = {}
+    for label in labels_fr_multi :
+        doc = nlp(str(label))
+        tmp = [tok.text for tok in doc if tok.dep_ == 'ROOT']
+        # Pour l'instant on fait que pour ceux qui ont une seule racine
+        if len(tmp) == 1 :
+            label_and_root_fr[label] = tmp[0]
+
+    nlp_en =  spacy.load('en_core_web_sm')
+    label_and_root_en  = {}
+    for label in labels_en :
+        doc = nlp_en(str(label))
+        tmp = [tok.text for tok in doc if tok.dep_ == 'ROOT']
+        # Pour l'instant on fait que pour ceux qui ont une seule racine
+        if len(tmp) == 1:
+            label_and_root_en[label] = tmp[0]
+
+    print(label_and_root_en)
+    dico_labels_multi_fr = {}
+
+    for label, subject in label_and_root_fr.items() :
+        dico_labels_multi_fr[label] = {id: title for id, title in french_nasari_IT.items() if
+                                   remove_accents(subject.lower()) in remove_accents(title.lower())}
+
+
+    dico_labels_eng = {}
+    for label, subject in label_and_root_en.items() :
+        dico_labels_eng[label] = [id for id,title in english_nasari_IT.items() if remove_accents(subject.lower()) in remove_accents(title.lower()) ]
+
+    #Essai sur les 5 premiers labels
+    tmp = list(dico_labels_multi_fr.keys())
+    for i in range(5) :
+        tomatch  = tmp[i]
+        matched = [label for label, bns in dico_labels_eng.items() if
+                       len(set(bns) & set(dico_labels_multi_fr[tomatch].keys())) > 0]
+        print(tomatch)
+        print(matched)
+        print()
 
     
 
