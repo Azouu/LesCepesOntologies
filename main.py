@@ -49,38 +49,6 @@ def findCouple(couple,ontLang1,ontLang2):
 def formatforFinder(classe):
     return (classe[7:].replace("#",".")).replace("_","-")
 
-
-
-def getVectInId(listeVect,vect):
-    for i in range(len(listeVect)):
-        if listeVect[i] == vect:
-            return i+1
-
-def match2(id1, id2, dico1, dico2):
-    # récuperation de la liste des vecteurs pour l'id1
-    listID1 = list(dico1[id1].keys())
-
-    # récuperation de la liste des vecteurs pour l'id2
-    listID2 = list(dico2[id2].keys())
-
-
-    # récupération de l'intersection des vecteurs (vecteurs commun aux 2) => O dans le pdf
-    intersection = list(set(listID1) & set(listID2))
-
-    top = 0
-    bot = 0
-
-    for i in range(len(intersection)):
-        rangListe1 =  listID1.index(intersection[i]) + 1
-        rangListe2 =  listID2.index(intersection[i]) + 1
-        top += ((rangListe1 + rangListe2) ** -1)
-        bot += (2 * i + 1) ** -1
-
-    return (top / bot) if bot != 0 else top
-
-
-
-
 def findOntInNASARI(ont,dico):
 
     translator = str.maketrans(string.punctuation, ' '*len(string.punctuation))
@@ -100,11 +68,6 @@ def findOntInNASARI(ont,dico):
                 tabID[i] = id
     return tabScore,tabTitle,tabID
 
-
-
-
-
-
 if __name__ == '__main__':
 
     ontology_name = 'conference'
@@ -113,10 +76,10 @@ if __name__ == '__main__':
 
     onto_reader = OntologyReader(ontology_name, source_language, target_language)
 
-    ref = getAlignementClass('conference-conference-en-fr.rdf')
-    print(ref[2])
-    refLab = getAlignementsLabels(ref, onto_reader.getClassLabels('source'), onto_reader.getClassLabels('target'))
-    print(refLab[2])
+    # ref = getAlignementClass('ref/en-fr/conference-conference-en-fr.rdf')
+    # print(ref[2])
+    # refLab = getAlignementsLabels(ref, onto_reader.getClassLabels('source'), onto_reader.getClassLabels('target'))
+    # print(refLab[2])
 
     source_nasari = NasariReader('NASARI_unified_french.txt', 'fr')
     target_nasari = NasariReader('NASARI_unified_english.txt', 'en')
@@ -130,10 +93,28 @@ if __name__ == '__main__':
     dico_nasari_score = {}
     for source_label in source_class_labels :
             matched = [target_label for target_label in target_class_labels if  len(set(source_dict[source_label]) & set(target_dict[target_label])) > 0]
-            #tmp = [1/(len(target_label.split()) * len(target_dict[target_label])) for target_label in matched]
-            print(source_label)
-            print(matched)
-            print()
+            dico_nasari_score[source_label] = {target_label: len(set(source_dict[source_label]) & set(target_dict[target_label])) for target_label in matched}
+
+    dico = {}
+    for target_label in target_class_labels :
+        dico[target_label] = len([x for x in dico_nasari_score.keys() if target_label in dico_nasari_score[x].keys()])
+
+    threshold = 0.7
+    to_remove = [v for v,x in dico.items() if x / len(target_class_labels) > threshold]
+    print(to_remove)
+
+    for source_label in source_class_labels:
+        intersect = set(dico_nasari_score[source_label]) & set(to_remove)
+        for l in intersect :
+            dico_nasari_score[source_label].pop(l,None)
+
+    my_dictionary = {}
+    for source_label in source_class_labels :
+        my_dictionary[source_label] = {k: v/sum(dico_nasari_score[source_label].values()) for k, v in dico_nasari_score[source_label].items()}
+
+
+
+
 
 
 
