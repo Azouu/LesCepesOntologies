@@ -1,27 +1,16 @@
 import mmap
 
 from owlready2 import *
-import os
-import numpy as np
-
-
-from collections import defaultdict
-import csv
-import sys
-import re
-import pandas as pd
-
-import nltk
+from googletrans import Translator
+import editdistance
 import spacy
-
-import unicodedata
+from deep_translator import GoogleTranslator
 
 def flatten(liste) :
     flat_list = [item for sublist in liste for item in sublist]
     return flat_list
 
 if __name__ == '__main__':
-
 
     onto_path.append("./ont/fr/")
     onto_fr = get_ontology("conference-fr").load()
@@ -35,3 +24,10 @@ if __name__ == '__main__':
     labels_en = flatten([classe.label for classe in classes_en])
     print(labels_fr)
     print(labels_en)
+
+    dico = {}
+    preprocessed_labels = [label + " conférence" for label in labels_fr]
+    for label, preprocessed_label in zip(labels_fr, preprocessed_labels) :
+        dico[label] = GoogleTranslator(source='fr', target='en').translate(preprocessed_label)
+
+
