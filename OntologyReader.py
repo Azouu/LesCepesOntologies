@@ -1,5 +1,6 @@
 from owlready2 import *
 from utils import flatten
+import numpy as np
 
 class OntologyReader :
 

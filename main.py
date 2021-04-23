@@ -112,7 +112,7 @@ if __name__ == '__main__':
     for source_label in source_class_labels :
         my_dictionary[source_label] = {k: v/sum(dico_nasari_score[source_label].values()) for k, v in dico_nasari_score[source_label].items()}
 
-
+    print(my_dictionary)
 
 
 

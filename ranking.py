@@ -11,7 +11,9 @@ Authors: Fabian Pedregosa <fabian@fseoane.net>
 import itertools
 import numpy as np
 
-from sklearn import svm, linear_model, cross_validation
+from sklearn import svm, linear_model
+from sklearn.model_selection import KFold 
+
 
 
 def transform_pairwise(X, y):
@@ -119,17 +121,20 @@ if __name__ == '__main__':
     # as showcase, we will create some non-linear data
     # and print the performance of ranking vs linear regression
 
-    np.random.seed(1)
-    n_samples, n_features = 300, 5
-    true_coef = np.random.randn(n_features)
-    X = np.random.randn(n_samples, n_features)
-    noise = np.random.randn(n_samples) / np.linalg.norm(true_coef)
-    y = np.dot(X, true_coef)
-    y = np.arctan(y) # add non-linearities
-    y += .1 * noise  # add noise
-    Y = np.c_[y, np.mod(np.arange(n_samples), 5)]  # add query fake id
-    cv = cross_validation.KFold(n_samples, 5)
-    train, test = iter(cv).next()
+    # np.random.seed(1)
+    n_samples, n_features = 3422, 2
+    
+    # true_coef = np.random.randn(n_features)
+    # X = np.random.randn(n_samples, n_features)
+    # noise = np.random.randn(n_samples) / np.linalg.norm(true_coef)
+    # y = np.dot(X, true_coef)
+    # y = np.arctan(y) # add non-linearities
+    # y += .1 * noise  # add noise
+    # Y = np.c_[y, np.mod(np.arange(n_samples), 5)]  # add query fake id
+    # cv = KFold(n_splits = 5)
+    # for train_index, test_index in cv.split(X):
+    #     X_train, X_test = X[train_index], X[test_index]
+    #     y_train, y_test = y[train_index], y[test_index]
 
     # make a simple plot out of it
     import pylab as pl
@@ -140,12 +145,12 @@ if __name__ == '__main__':
     pl.show()
 
     # print the performance of ranking
-    rank_svm = RankSVM().fit(X[train], Y[train])
-    print 'Performance of ranking ', rank_svm.score(X[test], Y[test])
+    rank_svm = RankSVM().fit(X_train, y_train)
+    print('Performance of ranking ', rank_svm.score(X_test, y_test))
 
     # and that of linear regression
     ridge = linear_model.RidgeCV(fit_intercept=True)
-    ridge.fit(X[train], y[train])
-    X_test_trans, y_test_trans = transform_pairwise(X[test], y[test])
+    ridge.fit(X_train, y_train)
+    X_test_trans, y_test_trans = transform_pairwise(X_test, y_test)
     score = np.mean(np.sign(np.dot(X_test_trans, ridge.coef_)) == y_test_trans)
-    print 'Performance of linear regression ', score
+    print('Performance of linear regression ', score)
