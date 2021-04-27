@@ -49,12 +49,12 @@ Parameters are :
 Please use the initials of the folders in the ont/ folder as source_language or target_language content.
 Make sure they fit with the spacy languages, see https://spacy.io/usage/models .
 If you want to add a language, go to `NasariReader.py` and add the corresponding lines of codes to using the information in https://spacy.io/usage/models : 
-`
+```
         if self.language == 'en' or self.language =='english' :
             self.nlp = spacy.load('en_core_web_sm')
         elif self.language == 'fr' or self.language == 'french' :
             self.nlp = spacy.load('fr_core_news_sm')
- `
+ ```
 * source_nasari and target_nasari : file name of the NASARI_unified files in the main folder.
 
 # Note 
